@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 from compressor import CompressorSelector
 import os
+import time
 title_font = ("Monospace", 13)
 label_font = ("Monospace", 10)
 
@@ -97,24 +98,29 @@ class GUI(object):
             self.decompression_algorithm.current())
 
     def compress(self):
-        if self.img_file:                        
+        if self.img_file:  
+            start = time.time()                      
             output_size = self.compressor.encode(self.img_file, self.save_path)
+            end = time.time()
             ratio = os.stat(self.img_file).st_size / output_size
-            message = "Compress successfully\nSize of output file : " + str(output_size) + "bytes\nCompression ratio : " + str(ratio)
+            message = "Compress successfully\nSize of output file : " + str(output_size) + "bytes\nCompression ratio : " + str(ratio) + "\nExecution time : " + str(end - start) +" seconds"
             if ratio < 1.0:
                 message += "\nBad compress"
             tkinter.messagebox.showinfo("Title", message)
         
     def decompress(self):
         if self.compressed_file:
+            start = time.time()
             output_img_size, resolution = self.compressor.decode(self.compressed_file, self.output_img_file)
+            end = time.time()
             row, col = resolution[0], resolution[1]
             img = ImageTk.PhotoImage(Image.open(self.output_img_file).resize((int(col / 15), int(row / 15)), Image.ANTIALIAS))
             self.panel_img_output.configure(image=img)
             self.panel_img_output.image = img
             self.resolution_output_label.config(text="Resolution : " + str(col) + " x " + str(row))
             self.image_size_output_label.config(text="Size : " + str(output_img_size) + " bytes")
-
+            message = "Decompress successfully\nExecution time : " + str(end - start) +" seconds"
+            tkinter.messagebox.showinfo("Title", message)
 
     def choose_save_file(self):       
         my_format = [("LZW", "*.lzw"), ("Huffman", "*.huff"), ("JPEG", "*.jpg")]
@@ -134,7 +140,7 @@ class GUI(object):
             self.compressed_file = None
 
     def choose_save_img_file(self):
-        my_format = [("BMP", "*.bmp"), ("JPEG", "*.jpg"), ("PNG", "*.png")]
+        my_format = [("PPM", "*.ppm"), ("BMP", "*.bmp"), ("JPEG", "*.jpg"), ("PNG", "*.png")]
         file = tkinter.filedialog.asksaveasfilename(filetypes= my_format, title="Save file as...")
         if len(file) > 0:
             self.output_img_file = file
