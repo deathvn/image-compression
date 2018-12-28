@@ -42,10 +42,15 @@ class Huffman():
 
     def encode(self, path, out_path):
         #Read image
-        img = cv2.imread(path)
+        tail = (path.split('.')[-1])
+        if (tail == 'pgm'):
+            img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+        else:
+            img = cv2.imread(path)
+
         _shape = img.shape
-        path = path.replace(".*", "")
         img2 = img.flatten()
+
 
         #en Code
         frequency = defaultdict(int)
@@ -66,17 +71,17 @@ class Huffman():
             heapq.heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
         huff = sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
         _dict = [_shape, huff]
-        np.save(out_path.replace(".*", "") + "_dict.npy", _dict)
+        np.save(out_path + ".dict.npy", _dict)
 
         #print enCode data
         for hu in huff:
             code[hu[0]] = hu[1]
 
         en_code=""
-        arr = []
+        #arr = []
         for t in img2:
             en_code += code[t]
-            arr += code[t]
+            #arr.append(code[t])
 
         f = open(out_path, "wb")
         padded_encoded_text = self.pad_encoded_text(en_code)
@@ -85,14 +90,13 @@ class Huffman():
         f.close()
 
 
+
     def decode(self, path, out_path):
         #Load data
-        inpath = path
-        path = path.replace(".*", "")
-        _dict = np.load(path+"_dict.npy")
+        _dict = np.load(path+".dict.npy")
         _shape = _dict[0]
         huff = _dict[1]
-        with open(inpath, "rb") as file:
+        with open(path, "rb") as file:
             bit_string = ""
 
             byte = file.read(1)
@@ -148,4 +152,4 @@ if __name__ == '__main__':
         elif (comand == "decode"):
             c.decode(file_name, out_file)
         else:
-            print("Usage: python huffmanIMG [encode, decode] <input_name> <output_name>")
+print("Usage: python huffmanIMG [encode, decode] <input_name> <output_name>")
